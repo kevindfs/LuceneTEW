@@ -11,10 +11,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Paths;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -75,11 +83,16 @@ public class LuceneTEW {
         }
     }
     
-    public static void ParseXML(StringBuilder sb) {
+    public static void ParseXML(StringBuilder sb) throws IOException {
         
-        IndexWriter writer = null;
-        File dir = new File("");
-        Document docIndex = null;
+        String indexPath = "C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Indice";
+        Directory dir = FSDirectory.open(Paths.get(indexPath));
+        Analyzer analyzer = new StandardAnalyzer();
+        IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
+        iwc.setOpenMode(OpenMode.CREATE);
+        IndexWriter writer = new IndexWriter(dir, iwc);
+        org.apache.lucene.document.Document doc = new org.apache.lucene.document.Document();
+        
         //... Continuar aqui!
         
         String xml = sb.toString();  
@@ -97,19 +110,24 @@ public class LuceneTEW {
         for (int i = 0; i < nList.getLength(); i++) {
             tempNodo = nList.item(i);
             nSubList = tempNodo.getChildNodes();
+            doc = new org.apache.lucene.document.Document();
             for (int j = 0; j < nSubList.getLength(); j++) {
                 tempSubNodo = nSubList.item(j);
                 if(!tempSubNodo.getNodeName().contains("#")){
-                    System.out.println(tempSubNodo.getNodeName());
-                    System.out.println(tempSubNodo.getTextContent());
+                    //System.out.println(tempSubNodo.getNodeName());
+                    //System.out.println(tempSubNodo.getTextContent());
                     //LLenar indice
+                    
+                    doc.add(new StringField(tempSubNodo.getNodeName(), tempSubNodo.getTextContent(), Field.Store.YES));   
                 }
-                
             }
+            writer.addDocument(doc);
         }
+        //System.out.println(document);
+        //System.out.println(nList.getLength());
+        writer.close();
+        System.out.println("Indice Creado");
         
-        System.out.println(document);
-        System.out.println(nList.getLength());
     } catch (Exception e) {  
         e.printStackTrace();  
     }
