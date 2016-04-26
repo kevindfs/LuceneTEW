@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -31,10 +33,15 @@ public class LuceneTEW {
                 //System.out.println("El archivo encontrado es: " + f.getName());
                 br = new BufferedReader(new FileReader(f));
                 String tempLine =  br.readLine();
+                String nombreTemp = f.getName();
+                String tipo = nombreTemp.split("\\+")[1];
+                String anio = (nombreTemp.split("\\+")[0]).split("_")[0];
+                String marca = (nombreTemp.split("\\+")[0]).split("_")[1];
+                String modelo = (nombreTemp.split("\\+")[0]).split("_")[2];
                 
                 while(tempLine!=null){
                     if (tempLine.contains("<DOCNO>")) {
-                        //String nombreTemp = f.getName();
+                        
                         //tempLine = "<DOCNO>"+nombreTemp.split("\\+")[0]+"</DOCNO>";
                         //tempLine = "<DOCNO>"+nombreTemp+"----</DOCNO>";
                         //sb.append(tempLine);
@@ -42,6 +49,12 @@ public class LuceneTEW {
                         
                         //tempLine = "<MODEL>"+nombreTemp.split("\\+")[1]+"</MODEL>";
                         //sb.append(tempLine);
+                    }
+                    else if(tempLine.contains("<DOC>"))
+                    {
+                        tempLine = tempLine.replace("<DOC>", "\n<DOC>\n<YEAR>"+anio+"</YEAR>\n<BRAND>"+marca+"</BRAND>\n<MODEL>"+modelo+"</MODEL>\n<BODY>"+tipo+"</BODY>");
+                        sb.append(tempLine);
+                        tempLine = br.readLine();
                     }
                     else{
                         sb.append(tempLine);
@@ -63,6 +76,12 @@ public class LuceneTEW {
     }
     
     public static void ParseXML(StringBuilder sb) {
+        
+        IndexWriter writer = null;
+        File dir = new File("");
+        Document docIndex = null;
+        //... Continuar aqui!
+        
         String xml = sb.toString();  
         xml = limpiarXML(xml);              
         //System.out.println(xml);
@@ -80,9 +99,13 @@ public class LuceneTEW {
             nSubList = tempNodo.getChildNodes();
             for (int j = 0; j < nSubList.getLength(); j++) {
                 tempSubNodo = nSubList.item(j);
-                System.out.println(tempSubNodo.getNodeValue());
+                if(!tempSubNodo.getNodeName().contains("#")){
+                    System.out.println(tempSubNodo.getNodeName());
+                    System.out.println(tempSubNodo.getTextContent());
+                    //LLenar indice
+                }
+                
             }
-            System.out.println(tempNodo.getFirstChild().getNodeValue());
         }
         
         System.out.println(document);
@@ -135,9 +158,9 @@ public class LuceneTEW {
     }
     
     public static void main(String[] args) throws IOException {
-        File dir1 = new File("C:\\Users\\Hp Kevin\\Downloads\\OpinRankDataset\\cars\\2007");
-        File dir2 = new File("C:\\Users\\Hp Kevin\\Downloads\\OpinRankDataset\\cars\\2008");
-        File dir3 = new File("C:\\Users\\Hp Kevin\\Downloads\\OpinRankDataset\\cars\\2009");
+        File dir1 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2007");
+        File dir2 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2008");
+        File dir3 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2009");
         File[] archivos = dir1.listFiles();
         
         StringBuilder archivo1, archivo2, archivo3;
