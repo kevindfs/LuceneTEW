@@ -129,7 +129,7 @@ public class LuceneTEW {
                     //LLenar indice
                     
                     doc.add(new StringField(tempSubNodo.getNodeName(), tempSubNodo.getTextContent(), Field.Store.YES));   
-//                    System.out.println(tempSubNodo.getNodeName()+ ' '+ tempSubNodo.getTextContent());
+                    System.out.println(tempSubNodo.getNodeName()+ ' '+ tempSubNodo.getTextContent());
                 }
             }
             writer.addDocument(doc);
@@ -148,9 +148,9 @@ public class LuceneTEW {
     IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
     IndexSearcher searcher = new IndexSearcher(reader);
     Analyzer analyzer2 = new StandardAnalyzer();
-    QueryParser parser = new QueryParser("text", analyzer2);
-    org.apache.lucene.search.Query query = parser.parse("H");
-    TopDocs results = searcher.search(query,10);
+    QueryParser parser = new QueryParser("BRAND", analyzer2);
+    org.apache.lucene.search.Query query = parser.parse("jeep");
+    TopDocs results = searcher.search(query,100000);
     ScoreDoc[] hits = results.scoreDocs;
     
     
