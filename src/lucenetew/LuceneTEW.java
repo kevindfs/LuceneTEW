@@ -14,19 +14,29 @@ import java.io.StringReader;
 import java.nio.file.Paths;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 
 public class LuceneTEW {
@@ -83,7 +93,7 @@ public class LuceneTEW {
         }
     }
     
-    public static void ParseXML(StringBuilder sb) throws IOException {
+    public static void ParseXML(StringBuilder sb) throws IOException, ParseException {
         
         String indexPath = "C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Indice";
         Directory dir = FSDirectory.open(Paths.get(indexPath));
@@ -91,7 +101,7 @@ public class LuceneTEW {
         IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE);
         IndexWriter writer = new IndexWriter(dir, iwc);
-        org.apache.lucene.document.Document doc = new org.apache.lucene.document.Document();
+        org.apache.lucene.document.Document doc;
         
         //... Continuar aqui!
         
@@ -119,19 +129,33 @@ public class LuceneTEW {
                     //LLenar indice
                     
                     doc.add(new StringField(tempSubNodo.getNodeName(), tempSubNodo.getTextContent(), Field.Store.YES));   
+//                    System.out.println(tempSubNodo.getNodeName()+ ' '+ tempSubNodo.getTextContent());
                 }
             }
             writer.addDocument(doc);
+           // System.out.println(doc.toString());
         }
         //System.out.println(document);
         //System.out.println(nList.getLength());
         writer.close();
         System.out.println("Indice Creado");
         
-    } catch (Exception e) {  
-        e.printStackTrace();  
+    } catch (ParserConfigurationException | SAXException | IOException | DOMException e) {  
     }
-      
+    
+    
+    //Reader
+    IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
+    IndexSearcher searcher = new IndexSearcher(reader);
+    Analyzer analyzer2 = new StandardAnalyzer();
+    QueryParser parser = new QueryParser("text", analyzer2);
+    org.apache.lucene.search.Query query = parser.parse("H");
+    TopDocs results = searcher.search(query,10);
+    ScoreDoc[] hits = results.scoreDocs;
+    
+    
+    System.out.println(hits.length);
+
     }
     public static String limpiarXML(String xml){
         
@@ -175,7 +199,7 @@ public class LuceneTEW {
         return xml;
     }
     
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
         File dir1 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2007");
         File dir2 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2008");
         File dir3 = new File("C:\\Users\\Hp Kevin\\Documents\\NetBeansProjects\\LuceneTEW\\Origen\\2009");
